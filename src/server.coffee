@@ -1,5 +1,6 @@
 restify = require 'restify'
 persistence = require './mysql-persistence'
+config = require './conf'
 
 server = restify.createServer()
 
@@ -16,7 +17,14 @@ get_by_identifier = (req, res, next) ->
   persistence.get_identifier_map(type,id, 
     (result) -> 
       if(result)
-        res.send(result)
+        resource_type = result.ResourceType
+        return_type =
+          resourceType : resource_type
+          resourceName : result.ResourceName
+          resourceURI : result.ResourceURI
+          baseEntityURI : if resource_type == "CODE_SYSTEM" then result.BaseEntityURI else null
+
+        res.send(return_type)
       else
         send_error(404, "Resource Not Found", res)
   )
@@ -38,10 +46,11 @@ get_all_ids = (req, res, next) ->
   id = req.params.local_identifier
   persistence.get_all_ids(type,id, 
     (result) -> 
-      if(result)
+      if(result and result[0])
         return_type =
+          resourceType : result[0].ResourceType
           localIdentifier : result[0].ResourceName
-          uri : result[0].ResourceURI
+          resourceURI : result[0].ResourceURI
           identifiers : (build_identifier(row) for row in result)
         res.send(return_type)
       else
@@ -65,7 +74,7 @@ start_server = () ->
   server.get('/ids/:type/:local_identifier', get_all_ids )
   server.post('/ids', save )
 
-  server.listen(8080, () ->
+  server.listen(config.server.port, () ->
     console.log('%s listening at %s', server.name, server.url) )
     
 build_identifier_map = (row) ->

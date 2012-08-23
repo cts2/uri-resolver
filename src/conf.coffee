@@ -1,12 +1,13 @@
-server_context =
+server =
+  port : 8000
   server_root : "http://some/server"
 
 database =
   username: "lexgrid"
-  password: "xxxxxx"
+  password: "lexgrid"
   database: "urimap"
   port : "3307"
   host : "bmidev4"
 
-module.exports.server_context = server_context
+module.exports.server = server
 module.exports.database = database
