@@ -18,7 +18,7 @@ get_by_identifier = (req, res, next) ->
       if(result)
         res.send(result)
       else
-        send_error(404, "Resource Not Found")
+        send_error(404, "Resource Not Found", res)
   )
 
 get_by_id = (req, res, next) ->
@@ -45,7 +45,7 @@ get_all_ids = (req, res, next) ->
           identifiers : (build_identifier(row) for row in result)
         res.send(return_type)
       else
-        send_error(404, "Resource Not Found")
+        send_error(404, "Resource Not Found", res)
   )
 
 build_identifier = (row) ->
