@@ -3,7 +3,7 @@
   "description": "A URI to identifier resolution service.",
   "contributors": [ 
     {
-      "name": "Harold Solbrig",
+      "name": "Harold Solbrig"
     } 
   ],
   "keywords": ["uri", "cts2", "coffeescript"],
