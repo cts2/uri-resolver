@@ -1,0 +1,20 @@
+{
+  "name": "uri-resolver",
+  "description": "A URI to identifier resolution service.",
+  "contributors": [ 
+    {
+      "name": "Harold Solbrig",
+    } 
+  ],
+  "keywords": ["uri", "cts2", "coffeescript"],
+  "author": "Kevin Peterson",
+  "version": "0.1.0",
+  "licenses": [{
+    "type": "MIT",
+    "url": "http://opensource.org/licenses/mit-license.php"
+  }],
+  "dependencies": {
+    "restify" : "1.4.4",
+    "mysql-simple" : "1.0.3"
+  }
+}
