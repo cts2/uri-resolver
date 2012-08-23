@@ -49,7 +49,7 @@ get_all_ids = (req, res, next) ->
       if(result and result[0])
         return_type =
           resourceType : result[0].ResourceType
-          localIdentifier : result[0].ResourceName
+          resourceName : result[0].ResourceName
           resourceURI : result[0].ResourceURI
           identifiers : (build_identifier(row) for row in result)
         res.send(return_type)
