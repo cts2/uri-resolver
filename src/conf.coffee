@@ -3,7 +3,7 @@ server_context =
 
 database =
   username: "lexgrid"
-  password: "lexgrid"
+  password: "xxxxxx"
   database: "urimap"
   port : "3307"
   host : "bmidev4"
