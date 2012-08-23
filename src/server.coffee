@@ -30,7 +30,7 @@ get_by_id = (req, res, next) ->
         res.header('Location', "/uri/#{result.ResourceType}/#{result.ResourceName}");
         res.send(302)
       else
-        send_error(404, "Resource Not Found")
+        send_error(404, "Resource Not Found", res)
   )
 
 get_all_ids = (req, res, next) ->
