@@ -7,14 +7,10 @@ server = restify.createServer()
 server.use(restify.queryParser())
 server.use(restify.bodyParser({ mapParams: false }))
 
-save = (req, res, next) ->
-  persistence.save(req.body)
-  res.send(201)
-
 get_by_identifier = (req, res, next) ->
   type = req.params.type
-  id = req.params.local_identifier
-  persistence.get_identifier_map(type,id, 
+  identifier = req.params.identifier
+  persistence.get_by_identifier(type,identifier, 
     (result) -> 
       if(result)
         resource_type = result.ResourceType
@@ -32,19 +28,19 @@ get_by_identifier = (req, res, next) ->
 get_by_id = (req, res, next) ->
   type = req.params.type
   id = req.query.id
-  persistence.get_identifier_map(type,id, 
+  persistence.get_by_id(type,id, 
     (result) -> 
       if(result)
-        res.header('Location', "/uri/#{result.ResourceType}/#{result.ResourceName}");
+        res.header('Location', "/id/#{result.ResourceType}/#{result.ResourceName}");
         res.send(302)
       else
         send_error(404, "Resource Not Found", res)
   )
 
-get_all_versions_by_identifier = (req, res, next) ->
+get_all_version_ids = (req, res, next) ->
   type = req.params.type
-  id = req.params.local_identifier
-  persistence.get_all_versions_info(type,id
+  identifier = req.params.identifier
+  persistence.get_all_version_ids("CODE_SYSTEM",identifier
     (result) -> 
       if(result and result[0])
         return_type =
@@ -58,9 +54,9 @@ get_all_versions_by_identifier = (req, res, next) ->
 
 get_by_version_id = (req, res, next) ->
   type = req.params.type
-  id = req.params.local_identifier
+  identifier = req.params.identifier
   version_id = req.params.version_id
-  persistence.get_version_info(type,id,version_id,
+  persistence.get_by_version_id(type,identifier,version_id,
     (result) -> 
       if(result)
         if(result.VersionName == result.VersionId)
@@ -69,16 +65,30 @@ get_by_version_id = (req, res, next) ->
             resourceName : result.VersionName
           res.send(return_type)
         else
-          res.header('Location', "/version/#{result.ResourceType}/#{result.ResourceName}/#{result.VersionName}");
+          res.header('Location', "/version/CODE_SYSTEM_VERSION/#{result.VersionName}");
           res.send(302)
+      else
+        send_error(404, "Resource Not Found", res)
+  )
+
+get_by_version_identifier = (req, res, next) ->
+  type = req.params.type
+  identifier = req.params.identifier
+  persistence.get_by_version_identifier("CODE_SYSTEM",identifier
+    (result) -> 
+      if(result)
+          return_type =
+            resourceURI : result.VersionURI
+            resourceName : result.VersionName
+          res.send(return_type)
       else
         send_error(404, "Resource Not Found", res)
   )
 
 get_all_ids = (req, res, next) ->
   type = req.params.type
-  id = req.params.local_identifier
-  persistence.get_all_ids(type,id, 
+  identifier = req.params.identifier
+  persistence.get_all_ids(type,identifier, 
     (result) -> 
       if(result and result[0])
         return_type =
@@ -104,11 +114,11 @@ send_error = (code, message, res) ->
 
 start_server = () ->
   server.get('/id/:type', get_by_id )
-  server.get('/uri/:type/:local_identifier', get_by_identifier )
-  server.get('/ids/:type/:local_identifier', get_all_ids )
-  server.get('/version/:type/:local_identifier/:version_id', get_by_version_id )
-  server.get('/versions/:type/:local_identifier', get_all_versions_by_identifier )
-  server.post('/ids', save )
+  server.get('/id/:type/:identifier', get_by_identifier )
+  server.get('/ids/:type/:identifier', get_all_ids )
+  server.get('/version/:type/:identifier/:version_id', get_by_version_id )
+  server.get('/version/:type/:identifier', get_by_version_identifier )
+  server.get('/versions/:type/:identifier', get_all_version_ids )
 
   server.listen(config.server.port, () ->
     console.log('%s listening at %s', server.name, server.url) )

@@ -11,7 +11,28 @@ database.init(
 save = (json) -> 
   db.save(json, (err, res) -> {})
 
-get_identifier_map = (type,id,callback) ->
+get_by_identifier = (type,identifier,callback) ->
+  database.querySingle(
+    """
+    SELECT * FROM identifiermap im
+
+    INNER JOIN urimap um ON 
+      (
+        im.resourcetype = um.resourcetype
+        AND
+        im.resourcename = um.resourcename
+      )
+
+    WHERE 
+      im.resourcetype = ?
+      AND
+      im.resourcename = ?
+    """, [type, identifier],
+    (err, result) ->
+      callback(result)
+  )
+
+get_by_id = (type,id,callback) ->
   database.querySingle(
     """
     SELECT * FROM identifiermap im
@@ -32,30 +53,7 @@ get_identifier_map = (type,id,callback) ->
       callback(result)
   )
 
-
-get_uri_description = (type,uri,callback) ->
-  database.querySingle(
-    """
-    SELECT * 
-    
-    FROM 
-      identifiermap im
-
-    INNER JOIN urimap um ON 
-      (
-        im.resourcetype = um.resourcetype
-        AND
-        im.identifier = um.resourcename
-
-    WHERE 
-      im.resourcetype = ?
-      im.identifier = ?
-    """, [type, id],
-    (err, result) ->
-      callback(result)
-  )
-
-get_all_ids = (type,resource_name,callback) ->
+get_all_ids = (type,identifier,callback) ->
   database.query(
     """
     SELECT 
@@ -77,12 +75,30 @@ get_all_ids = (type,resource_name,callback) ->
       im.resourcetype = ?
       AND
       im.resourcename = ?
-    """, [type, resource_name],
+    """, [type, identifier],
     (err, result) ->
       callback(result)
   )
 
-get_version_info = (type,name,version_id,callback) ->
+get_by_version_identifier = (type,identifier,callback) ->
+  database.querySingle(    
+    """
+    SELECT 
+      *
+    
+    FROM 
+      versionmap vm
+   
+    WHERE 
+      vm.resourcetype = ?
+      AND
+      vm.versionname = ?
+    """, [type,identifier],
+    (err, result) ->
+      callback(result)
+  )
+
+get_by_version_id = (type,identifier,version_id,callback) ->
   database.querySingle(    
     """
     SELECT 
@@ -97,12 +113,12 @@ get_version_info = (type,name,version_id,callback) ->
       vm.resourcename = ?
       AND
       vm.versionid = ?
-    """, [type,name,version_id],
+    """, [type,identifier,version_id],
     (err, result) ->
       callback(result)
   )
 
-get_all_versions_info = (type,name,callback) ->
+get_all_version_ids = (type,identifier,callback) ->
   database.query(    
     """
     SELECT 
@@ -114,15 +130,16 @@ get_all_versions_info = (type,name,callback) ->
     WHERE 
       vm.resourcetype = ?
       AND
-      vm.resourcename = ?
-    """, [type,name],
+      vm.versionname = ?
+    """, [type,identifier],
     (err, result) ->
       callback(result)
   )
 
 module.exports.save = save
-module.exports.get_identifier_map = get_identifier_map
-module.exports.get_uri_description = get_uri_description
-module.exports.get_version_info = get_version_info
+module.exports.get_by_id = get_by_id
+module.exports.get_by_identifier = get_by_identifier
+module.exports.get_by_version_id = get_by_version_id
 module.exports.get_all_ids = get_all_ids
-module.exports.get_all_versions_info = get_all_versions_info
+module.exports.get_all_version_ids = get_all_version_ids
+module.exports.get_by_version_identifier = get_by_version_identifier
