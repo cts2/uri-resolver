@@ -7,6 +7,32 @@ server = restify.createServer()
 server.use(restify.queryParser())
 server.use(restify.bodyParser({ mapParams: false }))
 
+
+get_namespace_by_id = (req, res, next) ->
+  id = req.query.id
+  persistence.get_by_id("CODE_SYSTEM",id, 
+    (result) -> 
+      if(result)
+        res.header('Location', "/namespace/#{result.ResourceName}");
+        res.send(302)
+      else
+        send_error(404, "Resource Not Found", res)
+  )
+
+get_namespace_by_identifier = (req, res, next) ->
+  identifier = req.params.identifier
+  persistence.get_by_identifier("CODE_SYSTEM",identifier, 
+    (result) -> 
+      if(result)
+        return_type =
+          prefix : result.ResourceName
+          namespaceURI : result.ResourceURI
+
+        res.send(return_type)
+      else
+        send_error(404, "Resource Not Found", res)
+  )
+
 get_by_identifier = (req, res, next) ->
   type = req.params.type
   identifier = req.params.identifier
@@ -119,6 +145,8 @@ start_server = () ->
   server.get('/version/:type/:identifier/:version_id', get_by_version_id )
   server.get('/version/:type/:identifier', get_by_version_identifier )
   server.get('/versions/:type/:identifier', get_all_version_ids )
+  server.get('/namespace', get_namespace_by_id )
+  server.get('/namespace/:identifier', get_namespace_by_identifier )
 
   server.listen(config.server.port, () ->
     console.log('%s listening at %s', server.name, server.url) )
