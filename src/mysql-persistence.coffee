@@ -102,8 +102,27 @@ get_version_info = (type,name,version_id,callback) ->
       callback(result)
   )
 
+get_all_versions_info = (type,name,callback) ->
+  database.query(    
+    """
+    SELECT 
+      *
+    
+    FROM 
+      versionmap vm
+   
+    WHERE 
+      vm.resourcetype = ?
+      AND
+      vm.resourcename = ?
+    """, [type,name],
+    (err, result) ->
+      callback(result)
+  )
+
 module.exports.save = save
 module.exports.get_identifier_map = get_identifier_map
 module.exports.get_uri_description = get_uri_description
 module.exports.get_version_info = get_version_info
 module.exports.get_all_ids = get_all_ids
+module.exports.get_all_versions_info = get_all_versions_info
