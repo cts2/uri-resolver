@@ -82,10 +82,23 @@ get_all_ids = (type,resource_name,callback) ->
       callback(result)
   )
 
-get_version_info = (type,uri,version_id,callback) ->
-  database.querySingle('SELECT * FROM identifierMap WHERE type=? AND identifier=?', [type, id],
+get_version_info = (type,name,version_id,callback) ->
+  database.querySingle(    
+    """
+    SELECT 
+      *
+    
+    FROM 
+      versionmap vm
+   
+    WHERE 
+      vm.resourcetype = ?
+      AND
+      vm.resourcename = ?
+      AND
+      vm.versionid = ?
+    """, [type,name,version_id],
     (err, result) ->
-      #process result
       callback(result)
   )
 

@@ -41,6 +41,26 @@ get_by_id = (req, res, next) ->
         send_error(404, "Resource Not Found", res)
   )
 
+get_by_version_id = (req, res, next) ->
+  type = req.params.type
+  id = req.params.local_identifier
+  version_id = req.params.version_id
+  console.log(type,id,version_id)
+  persistence.get_version_info(type,id,version_id,
+    (result) -> 
+      if(result)
+        if(result.VersionName == result.VersionId)
+          return_type =
+            resourceURI : result.VersionURI
+            resourceName : result.VersionName
+          res.send(return_type)
+        else
+          res.header('Location', "/version/#{result.ResourceType}/#{result.ResourceName}/#{result.VersionName}");
+          res.send(302)
+      else
+        send_error(404, "Resource Not Found", res)
+  )
+
 get_all_ids = (req, res, next) ->
   type = req.params.type
   id = req.params.local_identifier
@@ -72,6 +92,7 @@ start_server = () ->
   server.get('/id/:type', get_by_id )
   server.get('/uri/:type/:local_identifier', get_by_identifier )
   server.get('/ids/:type/:local_identifier', get_all_ids )
+  server.get('/version/:type/:local_identifier/:version_id', get_by_version_id )
   server.post('/ids', save )
 
   server.listen(config.server.port, () ->
