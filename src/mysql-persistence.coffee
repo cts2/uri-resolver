@@ -8,8 +8,25 @@ database.init(
   conf.database.host,
   conf.database.port)
 
-save = (json) -> 
-  db.save(json, (err, res) -> {})
+save_ids = (json,callback) ->
+  database.nonQuery("""
+    INSERT INTO urimap 
+      (resourcetype, resourcename, resourceuri, baseentityuri) 
+    VALUES (?, ?, ?, ?);
+    """, [json.resourceType, json.resourceName, json.resourceURI, json.baseEntityURI], 
+    (err, info) ->
+      if(!err)
+        _insert_identifier {id: identifier,type: json.resourceType,name: json.resourceName } for identifier in json.identifiers
+      else
+        callback(err)
+  )
+
+_insert_identifier = (json,callback) ->
+  database.nonQuery("""
+    INSERT INTO identifiermap 
+      (resourcetype, resourcename, identifier) 
+    VALUES (?, ?, ?);
+    """, [json.type, json.name, json.id], callback)
 
 get_by_identifier = (type,identifier,callback) ->
   database.querySingle(
@@ -49,6 +66,55 @@ get_by_id = (type,id,callback) ->
       AND
       im.identifier = ?
     """, [type, id],
+    (err, result) ->
+      callback(result)
+  )
+
+#TODO: not sure how queries will work
+query_urimaps = (q,callback) ->
+  where_clause = 
+        """
+        WHERE 
+          im.resourcetype LIKE ?
+          OR
+          im.resourcename LIKE ?
+          OR
+          im.identifier LIKE ?
+          OR
+          um.resourceuri LIKE ?
+        """
+  database.query(
+    """
+    SELECT 
+      *
+    
+    FROM 
+      identifiermap im
+
+    INNER JOIN 
+      urimap um 
+    ON 
+      (
+        im.resourcetype = um.resourcetype
+        AND
+        im.resourcename = um.resourcename
+      )
+   
+    #{
+      (() ->
+        if(q)
+          return where_clause
+        else
+          return ""
+      )()
+    }
+    """, 
+    if(q)
+      q = "%#{q}%"
+      [q,q,q,q]
+    else 
+      []
+    ,
     (err, result) ->
       callback(result)
   )
@@ -136,10 +202,11 @@ get_all_version_ids = (type,identifier,callback) ->
       callback(result)
   )
 
-module.exports.save = save
+module.exports.save_ids = save_ids
 module.exports.get_by_id = get_by_id
 module.exports.get_by_identifier = get_by_identifier
 module.exports.get_by_version_id = get_by_version_id
 module.exports.get_all_ids = get_all_ids
 module.exports.get_all_version_ids = get_all_version_ids
 module.exports.get_by_version_identifier = get_by_version_identifier
+module.exports.query_urimaps = query_urimaps

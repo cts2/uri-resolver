@@ -7,6 +7,24 @@ server = restify.createServer()
 server.use(restify.queryParser())
 server.use(restify.bodyParser({ mapParams: false }))
 
+#TODO: not sure how queries will work
+query_urimaps = (req, res, next) ->
+  query = req.query.q
+
+  build_query_result = (row) ->
+    return_result =
+      resourceName : row.ResourceName
+    return_result
+
+  persistence.query_urimaps(query, 
+    (results) -> 
+      if(results and results[0])
+        query_result = (build_query_result result for result in results)
+        res.send(query_result)
+      else
+        res.send( {} )
+  )
+
 
 get_namespace_by_id = (req, res, next) ->
   id = req.query.id
@@ -31,6 +49,21 @@ get_namespace_by_identifier = (req, res, next) ->
         res.send(return_type)
       else
         send_error(404, "Resource Not Found", res)
+  )
+
+save_ids = (req, res, next) ->
+  type = req.params.type
+  identifier = req.params.identifier
+
+  persistence.save_ids(req.body,
+    (err,info) ->
+      if(err)
+        if(err.sqlState == '23000')
+          send_error(500,"Duplicate Entry",res)
+        else
+          send_error(500,"Database Error",res)
+      else
+        res.send(200)
   )
 
 get_by_identifier = (req, res, next) ->
@@ -121,12 +154,13 @@ get_all_ids = (req, res, next) ->
           resourceType : result[0].ResourceType
           resourceName : result[0].ResourceName
           resourceURI : result[0].ResourceURI
-          identifiers : (build_identifier(row) for row in result)
+          identifiers : (row.Identifier for row in result)
         res.send(return_type)
       else
         send_error(404, "Resource Not Found", res)
   )
 
+###
 build_identifier = (row) ->
   identifier = 
     identifier : row.Identifier
@@ -134,6 +168,7 @@ build_identifier = (row) ->
     sourceVersion : row.SourceVersion
 
   identifier
+###
 
 send_error = (code, message, res) ->
   res.send(code, {'error_message' : message})
@@ -142,6 +177,11 @@ start_server = () ->
   server.get('/id/:type', get_by_id )
   server.get('/id/:type/:identifier', get_by_identifier )
   server.get('/ids/:type/:identifier', get_all_ids )
+  server.put('/ids/:type/:identifier', save_ids )
+
+  #TODO: not sure how queries will work
+  server.get('/urimaps', query_urimaps )
+
   server.get('/version/:type/:identifier/:version_id', get_by_version_id )
   server.get('/version/:type/:identifier', get_by_version_identifier )
   server.get('/versions/:type/:identifier', get_all_version_ids )
