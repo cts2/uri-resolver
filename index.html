@@ -4,8 +4,11 @@
 <head>
     <title></title>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3/jquery.min.js"></script>
- 
+
+    <link rel="stylesheet" href="style.css" type="text/css" />
+
     <script type="text/javascript">
+
 
         var serviceUrl = "http://localhost:8000";
 
@@ -27,14 +30,30 @@
         $(document).ready(function() {
             $('#btnAdd').click(function() {
                 addIdentifier();
+
+                return false;
             });
  
+            $('#btnClearAll').click(function() {
+                $('input').each(function(){
+                    $(this).val("");
+                });
+                $('#identifiers').empty();
+
+                return false;
+            });
+
             $('#btnLoad').click(function() {
                 $.ajax({
                     type: "GET",
                     url: serviceUrl + "/id/" + $('#resourceTypeLoad').val() + "?id=" + $('#identifierLoad').val(),
                     dataType: 'json',
                     contentType: "application/jsonp",
+                    error: function(XMLHttpRequest, textStatus, errorThrown){
+                        if( XMLHttpRequest.status == '404'){
+                            alert("No URI Map with identifier " + $('#identifierLoad').val() + " was found.");
+                        }
+                    },
                     success: function(data) {
                         $.ajax({
                             type: "GET",
@@ -54,6 +73,7 @@
                         });
                     }
                 });
+                return false;
             });
 
             $('#btnSave').click(function() {
@@ -65,7 +85,10 @@
                 }
 
                 $('.identifierInput').each(function(){
-                    json.identifiers.push($(this).val())
+                    var val = $(this).val();
+                    if(val && val != ''){
+                        json.identifiers.push($(this).val())
+                    }
                 });
 
                 $.ajax({
@@ -75,12 +98,14 @@
                     contentType: "application/json",
                     data: JSON.stringify(json),
                     success: function(data) {
-                        alert("ok");
+                        alert("Saved");
                     },
                     error: function(jqXHR, textStatus, errorThrown) {
                         alert("ERROR: " + jqXHR.responseText);
                     }
                 });
+
+                return false;
             });
         });
     </script>
@@ -88,39 +113,53 @@
  
 <body>
  
-<form id="myForm">
-    Resource Name: <input type="text" name="resourceName" id="resourceName" />
+<form id="myForm" class="registration">
+    <fieldset style="float:none !important">
+        <legend>Load a URI Map</legend>
+        <label>Identifier: </label><input type="text" name="identifierLoad" id="identifierLoad" />
+        <br/>
+        <label>Resource Type: </label>
+                        <select name="resourceTypeLoad" id="resourceTypeLoad" >
+                            <option value="CODE_SYSTEM">CODE_SYSTEM</option>
+                            <option value="CODE_SYSTEM_VERSION">CODE_SYSTEM_VERSION</option>
+                            <option value="VALUE_SET">VALUE_SET</option>
+                        </select>
+        <br/>
+        <button id="btnLoad" class="button" value="Load" >Load</button>
+    </fieldset>
+
+    <fieldset>
+        <legend>URI Map Details</legend>
+    <label>Resource Name: </label><input type="text" name="resourceName" id="resourceName" />
     <br/>
-    Resource URI: <input type="text" name="resourceUri" id="resourceUri" />
+    <label>Resource URI: </label><input type="text" name="resourceUri" id="resourceUri" />
     <br/>
-    Resource Type: <select name="resourceType" id="resourceType" >
+    <label>Resource Type: </label>
+                    <select name="resourceType" id="resourceType" >
                       <option value="CODE_SYSTEM">CODE_SYSTEM</option>
                       <option value="CODE_SYSTEM_VERSION">CODE_SYSTEM_VERSION</option>
                       <option value="VALUE_SET">VALUE_SET</option>
-                   </select>
-    <br/>
-    Identifiers:
-    <div id="identifiers"></div>
-
- 
-    <div>
-        <input type="button" id="btnAdd" value="Add Identifier" />
-        
-    </div>
-    <input type="button" id="btnSave" value="save" />
-    <input type="button" id="btnLoad" value="load" />
-    Identifier: <input type="text" name="identifierLoad" id="identifierLoad" />
-    Resource Type:  <select name="resourceTypeLoad" id="resourceTypeLoad" >
-                        <option value="CODE_SYSTEM">CODE_SYSTEM</option>
-                        <option value="CODE_SYSTEM_VERSION">CODE_SYSTEM_VERSION</option>
-                        <option value="VALUE_SET">VALUE_SET</option>
                     </select>
+    </fieldset>
+    <br/>
+    <fieldset style="float:none !important">
+        <div id="identifiers" ></div>
+        <button id="btnAdd" class="button" value="Add Identifier">Add Identifier</button>
+    </fieldset>
+     
+            
+    <fieldset> 
+        <button id="btnSave" class="button" value="save">Save</button>
+        <button id="btnClearAll" class="button" value="clear">Clear All</button>
+    </fieldset>
+   
 </form>
  
     <div id="divToClone" style='visibility:hidden'>
-         <div style="margin-bottom:4px;" class="clonedInput">
-            Identifier: <input type="text" class="identifierInput" />
-            <input type="button" value="Remove Identifier" class="btnDel" />
+         <div class="clonedInput">
+            <label>Identifier: </label>
+            <input type="text" class="identifierInput"/>
+            <button value="Remove Identifier" class="btnDel button">Remove Identifier</button>
         </div>
     </div
 

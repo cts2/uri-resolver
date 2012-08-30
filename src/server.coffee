@@ -1,11 +1,18 @@
 restify = require 'restify'
 persistence = require './mysql-persistence'
 config = require './conf'
+fs = require 'fs'
 
-server = restify.createServer()
+server = restify.createServer({
+  formatters : {
+    'text/html': (req, res, body) -> return body
+    'text/css': (req, res, body) -> return body
+  }
+})
 
 server.use(restify.queryParser())
 server.use(restify.bodyParser({ mapParams: false }))
+server.use(restify.authorizationParser())
 
 #TODO: not sure how queries will work
 query_urimaps = (req, res, next) ->
@@ -24,7 +31,6 @@ query_urimaps = (req, res, next) ->
       else
         res.send( {} )
   )
-
 
 get_namespace_by_id = (req, res, next) ->
   id = req.query.id
@@ -58,12 +64,9 @@ save_ids = (req, res, next) ->
   persistence.save_ids(req.body,
     (err,info) ->
       if(err)
-        if(err.sqlState == '23000')
-          send_error(500,"Duplicate Entry",res)
-        else
-          send_error(500,"Database Error",res)
+        send_error(500,err,res)
       else
-        res.send(200)
+        res.send({message:"saved"})
   )
 
 get_by_identifier = (req, res, next) ->
@@ -160,24 +163,40 @@ get_all_ids = (req, res, next) ->
         send_error(404, "Resource Not Found", res)
   )
 
-###
-build_identifier = (row) ->
-  identifier = 
-    identifier : row.Identifier
-    source : row.Source
-    sourceVersion : row.SourceVersion
-
-  identifier
-###
-
 send_error = (code, message, res) ->
   res.send(code, {'error_message' : message})
 
+authenticate = (req, res, next) ->
+  authz = req.authorization
+  err = null
+
+  if (!authz || authz.scheme != 'Basic' || authz.basic.username != config.server.admin_username || authz.basic.password != config.server.admin_password)
+      res.header('WWW-Authenticate', 'Basic realm="Please login"');
+      res.send(401);
+      err = false;
+
+  next(err);
+
+send_static = (file, type) ->
+  (req, res, next) ->
+    fs.readFile(file, 'utf8', 
+      (err, file) ->
+        if(err) 
+          res.send(500)
+          return next()
+
+        res.contentType = type
+        res.header('Content-Type',type)
+        res.send(file)
+    )
+
 start_server = () ->
+  server.get('/admin', send_static('../index.html', 'text/html') )
+  server.get('/style.css', send_static('../style.css', 'text/css') )
   server.get('/id/:type', get_by_id )
   server.get('/id/:type/:identifier', get_by_identifier )
   server.get('/ids/:type/:identifier', get_all_ids )
-  server.put('/ids/:type/:identifier', save_ids )
+  server.put('/ids/:type/:identifier', authenticate, save_ids )
 
   #TODO: not sure how queries will work
   server.get('/urimaps', query_urimaps )

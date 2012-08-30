@@ -1,4 +1,5 @@
-database = require('mysql-simple');
+database = require('./db')
+queues = require('mysql-queues')
 conf = require('./conf')
 
 database.init(
@@ -9,24 +10,46 @@ database.init(
   conf.database.port)
 
 save_ids = (json,callback) ->
-  database.nonQuery("""
-    INSERT INTO urimap 
-      (resourcetype, resourcename, resourceuri, baseentityuri) 
-    VALUES (?, ?, ?, ?);
-    """, [json.resourceType, json.resourceName, json.resourceURI, json.baseEntityURI], 
-    (err, info) ->
-      if(!err)
-        _insert_identifier {id: identifier,type: json.resourceType,name: json.resourceName } for identifier in json.identifiers
-      else
-        callback(err)
+  database.doWithClient(
+    (client) ->
+      _save_ids(client,json,callback)
   )
 
-_insert_identifier = (json,callback) ->
-  database.nonQuery("""
-    INSERT INTO identifiermap 
-      (resourcetype, resourcename, identifier) 
-    VALUES (?, ?, ?);
-    """, [json.type, json.name, json.id], callback)
+_save_ids = (client,json,callback) ->
+  trans = client.startTransaction();
+
+  error = (err,id) ->
+    if(err && !trans.rolledback && trans.rollback)
+      console.log("Rolling back...")
+      if(id)
+        callback("Error inserting ID: " + id + ". This ID is already in use.")
+      else
+        callback(err)
+      trans.rollback()
+
+  trans.query("""
+    DELETE FROM 
+      urimap
+    WHERE resourcename = ?
+    """, [json.resourceName],error)
+
+  trans.query("""
+    INSERT INTO urimap 
+      (resourcetype, resourcename, resourceuri, baseentityuri) 
+    VALUES (?, ?, ?, ?)
+    """, [json.resourceType, json.resourceName, json.resourceURI, json.baseEntityURI],error)
+
+  for id in json.identifiers
+    trans.query("""
+      INSERT INTO identifiermap 
+        (resourcetype, resourcename, identifier) 
+      VALUES (?,?,?)
+      """, [json.resourceType, json.resourceName, id], (err) -> error(err,id))
+
+  trans.commit(
+    (err, info) ->
+      callback(err)
+  )
 
 get_by_identifier = (type,identifier,callback) ->
   database.querySingle(
