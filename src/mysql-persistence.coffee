@@ -25,13 +25,15 @@ _save_ids = (client,json,callback) ->
         callback("Error inserting ID: " + id + ". This ID is already in use.")
       else
         callback(err)
+
       trans.rollback()
+      client.end()
 
   trans.query("""
     DELETE FROM 
       urimap
-    WHERE resourcename = ?
-    """, [json.resourceName],error)
+    WHERE resourcetype = ? AND resourcename = ?
+    """, [json.resourceType, json.resourceName],error)
 
   trans.query("""
     INSERT INTO urimap 
@@ -48,6 +50,7 @@ _save_ids = (client,json,callback) ->
 
   trans.commit(
     (err, info) ->
+      client.end()
       callback(err)
   )
 

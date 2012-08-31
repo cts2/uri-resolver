@@ -84,8 +84,7 @@ exports.doWithClient = function(callback) {
   pool.acquire(function(client) {
       const DEBUG = true;
       queues(client, DEBUG);
-      try { callback(client) }
-      finally { client.end(); }
+      callback(client);
   });
 };
 
