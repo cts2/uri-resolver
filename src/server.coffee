@@ -69,6 +69,18 @@ save_ids = (req, res, next) ->
         res.send({message:"saved"})
   )
 
+save_version_ids = (req, res, next) ->
+  type = req.params.type
+  identifier = req.params.identifier
+
+  persistence.save_version_ids(req.body,
+    (err,info) ->
+      if(err)
+        send_error(500,err,res)
+      else
+        res.send({message:"saved"})
+  )
+
 get_by_identifier = (req, res, next) ->
   type = req.params.type
   identifier = req.params.identifier
@@ -80,7 +92,8 @@ get_by_identifier = (req, res, next) ->
           resourceType : resource_type
           resourceName : result.ResourceName
           resourceURI : result.ResourceURI
-          baseEntityURI : if resource_type == "CODE_SYSTEM" then result.BaseEntityURI else null
+
+        if resource_type is "CODE_SYSTEM" then return_type.baseEntityURI = result.BaseEntityURI
 
         res.send(return_type)
       else
@@ -102,12 +115,14 @@ get_by_id = (req, res, next) ->
 get_all_version_ids = (req, res, next) ->
   type = req.params.type
   identifier = req.params.identifier
-  persistence.get_all_version_ids("CODE_SYSTEM",identifier
+  persistence.get_all_version_ids(type,identifier
     (result) -> 
       if(result and result[0])
         return_type =
           resourceURI : result[0].VersionURI
           resourceName : result[0].VersionName
+          resourceType : result[0].ResourceType
+          versionOf : result[0].VersionOfName
           identifiers : (row.VersionId for row in result)
         res.send(return_type)
       else
@@ -136,7 +151,7 @@ get_by_version_id = (req, res, next) ->
 get_by_version_identifier = (req, res, next) ->
   type = req.params.type
   identifier = req.params.identifier
-  persistence.get_by_version_identifier("CODE_SYSTEM",identifier
+  persistence.get_by_version_identifier(type,identifier
     (result) -> 
       if(result)
           return_type =
@@ -153,11 +168,15 @@ get_all_ids = (req, res, next) ->
   persistence.get_all_ids(type,identifier, 
     (result) -> 
       if(result and result[0])
+        resource_type = result[0].ResourceType
+
         return_type =
           resourceType : result[0].ResourceType
           resourceName : result[0].ResourceName
-          resourceURI : result[0].ResourceURI
           identifiers : (row.Identifier for row in result)
+
+        if resource_type is "CODE_SYSTEM" then return_type.baseEntityURI = result[0].BaseEntityURI
+
         res.send(return_type)
       else
         send_error(404, "Resource Not Found", res)
@@ -191,7 +210,8 @@ send_static = (file, type) ->
     )
 
 start_server = () ->
-  server.get('/admin', send_static('../index.html', 'text/html') )
+  server.get('/admin/versions', send_static('../version_admin.html', 'text/html') )
+  server.get('/admin', send_static('../id_admin.html', 'text/html') )
   server.get('/style.css', send_static('../style.css', 'text/css') )
   server.get('/id/:type', get_by_id )
   server.get('/id/:type/:identifier', get_by_identifier )
@@ -202,8 +222,10 @@ start_server = () ->
   server.get('/urimaps', query_urimaps )
 
   server.get('/version/:type/:identifier/:version_id', get_by_version_id )
-  server.get('/version/:type/:identifier', get_by_version_identifier )
+  server.get('/version/:type/:identifier', get_by_identifier )
   server.get('/versions/:type/:identifier', get_all_version_ids )
+  server.put('/versions/:type/:identifier', authenticate, save_version_ids )
+
   server.get('/namespace', get_namespace_by_id )
   server.get('/namespace/:identifier', get_namespace_by_identifier )
 
