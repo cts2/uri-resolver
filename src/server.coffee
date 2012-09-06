@@ -173,6 +173,7 @@ get_all_ids = (req, res, next) ->
         return_type =
           resourceType : result[0].ResourceType
           resourceName : result[0].ResourceName
+          resourceURI : result[0].ResourceURI
           identifiers : (row.Identifier for row in result)
 
         if resource_type is "CODE_SYSTEM" then return_type.baseEntityURI = result[0].BaseEntityURI
