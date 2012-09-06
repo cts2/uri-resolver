@@ -5,28 +5,191 @@
   <meta http-equiv="Content-Language" content="en-us" />
   <meta http-equiv="imagetoolbar" content="false" />
   <meta name="MSSmartTagsPreventParsing" content="true" />
-  <title>GitHub API v3</title>
+  <title>UriResolver API</title>
   <link href="style.css" rel="stylesheet" type="text/css" />
 
 <body>
-  <pre class="terminal">$ curl -i https://api.github.com
+  <h2>Return a URI Map based on an identifier</h2>
+  <pre><code>/id/{type}?id={identifier} </code></pre>
 
-HTTP/1.1 302 Found
-Server: nginx/1.0.12
-Date: Mon, 20 Feb 2012 11:15:49 GMT
-Content-Type: text/html;charset=utf-8
-Connection: keep-alive
-Status: 302 Found
-X-RateLimit-Limit: 5000
-ETag: "d41d8cd98f00b204e9800998ecf8427e"
-Location: http://developer.github.com
-X-RateLimit-Remaining: 4999
-Content-Length: 0
+  <p>Example:</p>
+  <pre class="terminal">
 
-</pre>
+  $ curl -XGET -ikL https://informatics.mayo.edu/cts2/services/uriresolver/id/CODE_SYSTEM?id=rdf 
 
-<pre><code>YYYY-MM-DDTHH:MM:SSZ
-</code></pre>
+  HTTP/1.1 302 Moved Temporarily
+  Date: Thu, 06 Sep 2012 13:39:12 GMT
+  Server: restify
+  Location: ../id/CODE_SYSTEM/rdf
+  Access-Control-Allow-Origin: *
+  Access-Control-Allow-Headers: Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version
+  Access-Control-Allow-Methods: GET
+  Access-Control-Expose-Headers: X-Api-Version, X-Request-Id, X-Response-Time
+  X-Request-Id: 9cc731e2-6431-47b4-9a2f-9fef0465bacf
+  X-Response-Time: 5
+  Via: 1.1 127.0.0.1
+  Content-Length: 0
+  Content-Type: text/plain
+  Via: 1.1 informatics.mayo.edu
+  Vary: Accept-Encoding
 
+  HTTP/1.1 200 OK
+  Date: Thu, 06 Sep 2012 13:39:12 GMT
+  Server: restify
+  Content-Type: application/json
+  Content-Length: 173
+  Access-Control-Allow-Origin: *
+  Access-Control-Allow-Headers: Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version
+  Access-Control-Allow-Methods: GET
+  Access-Control-Expose-Headers: X-Api-Version, X-Request-Id, X-Response-Time
+  Content-MD5: lCRxK21xkp5Nl4/JbM7eKQ==
+  X-Request-Id: 143cce1e-6d97-41a2-89f4-d0a8529945ea
+  X-Response-Time: 1
+  Via: 1.1 127.0.0.1
+  Via: 1.1 informatics.mayo.edu
+
+  </pre>
+  <p>Return:</p>
+  <pre>
+    <code>
+      {
+        "resourceType":"CODE_SYSTEM",
+        "resourceName":"rdf",
+        "resourceURI":"http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+        "baseEntityURI":"http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+      }
+    </code>
+  </pre>
+
+  <h2>Return all identifiers of a URI Map</h2>
+  <pre><code>/ids/{type}/{identifier} </code></pre>
+
+  <p>Example:</p>
+  <pre class="terminal">
+
+  $ curl -XGET -ikL https://informatics.mayo.edu/cts2/services/uriresolver/ids/CODE_SYSTEM/AIR
+  
+  HTTP/1.1 200 OK
+  Date: Thu, 06 Sep 2012 14:11:46 GMT
+  Server: restify
+  Content-Type: application/json
+  Content-Length: 175
+  Access-Control-Allow-Origin: *
+  Access-Control-Allow-Headers: Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version
+  Access-Control-Allow-Methods: GET
+  Access-Control-Expose-Headers: X-Api-Version, X-Request-Id, X-Response-Time
+  Content-MD5: zXK4XPzmxl+Gd0xDmIzeZA==
+  X-Request-Id: 5699c7d5-0893-41c7-a004-6f32953ceaf6
+  X-Response-Time: 5
+  Via: 1.1 127.0.0.1
+  Via: 1.1 informatics.mayo.edu
+
+  </pre>
+  <p>Return:</p>
+  <pre>
+    <code>
+    {
+      "resourceType":"CODE_SYSTEM",
+      "resourceName":"AIR",
+      "identifiers":[
+        "AI/RHEUM",
+        "AIR",
+        "http://id.nlm.nih.gov/cui/C1140091"
+      ],
+      "baseEntityURI":"http://id.nlm.nih.gov/cui/C1140091/"
+    }
+    </code>
+  </pre>
+
+  <h2>Return a URI Map based on a version identifier</h2>
+  <pre><code>/version/{type}/{identifier}/{versionIdentifier} </code></pre>
+
+  <p>Example:</p>
+  <pre class="terminal">
+
+  $ curl -XGET -ikL https://informatics.mayo.edu/cts2/services/uriresolver/version/CODE_SYSTEM/AIR/1993
+
+  HTTP/1.1 302 Moved Temporarily
+  Date: Thu, 06 Sep 2012 14:17:33 GMT
+  Server: restify
+  Location: ../../../version/CODE_SYSTEM_VERSION/AIR93
+  Access-Control-Allow-Origin: *
+  Access-Control-Allow-Headers: Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version
+  Access-Control-Allow-Methods: GET
+  Access-Control-Expose-Headers: X-Api-Version, X-Request-Id, X-Response-Time
+  X-Request-Id: 6e6b211b-6374-4018-9beb-edf879bf5eec
+  X-Response-Time: 2
+  Via: 1.1 127.0.0.1
+  Content-Length: 0
+  Content-Type: text/plain
+  Via: 1.1 informatics.mayo.edu
+  Vary: Accept-Encoding
+
+  HTTP/1.1 200 OK
+  Date: Thu, 06 Sep 2012 14:17:33 GMT
+  Server: restify
+  Content-Type: application/json
+  Content-Length: 112
+  Access-Control-Allow-Origin: *
+  Access-Control-Allow-Headers: Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version
+  Access-Control-Allow-Methods: GET
+  Access-Control-Expose-Headers: X-Api-Version, X-Request-Id, X-Response-Time
+  Content-MD5: ZW9vJEkaqM/47OjNtziOew==
+  X-Request-Id: eb8a8f14-18a5-4534-91d8-b1fc43ff6f7f
+  X-Response-Time: 1
+  Via: 1.1 127.0.0.1
+  Via: 1.1 informatics.mayo.edu
+
+  </pre>
+  <p>Return:</p>
+  <pre>
+    <code>
+    {
+      "resourceType":"CODE_SYSTEM_VERSION",
+      "resourceName":"AIR93",
+      "resourceURI":"http://id.nlm.nih.gov/cui/C1140092"
+    }
+    </code>
+  </pre>
+
+  <h2>Return all Version identifiers of a Version</h2>
+  <pre><code>/versions/{type}/{identifier}</code></pre>
+
+  <p>Example:</p>
+  <pre class="terminal">
+
+  $ curl -XGET -ikL https://informatics.mayo.edu/cts2/services/uriresolver/versions/CODE_SYSTEM_VERSION/AIR93
+  
+  HTTP/1.1 200 OK
+  Date: Thu, 06 Sep 2012 14:23:17 GMT
+  Server: restify
+  Content-Type: application/json
+  Content-Length: 161
+  Access-Control-Allow-Origin: *
+  Access-Control-Allow-Headers: Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version
+  Access-Control-Allow-Methods: GET
+  Access-Control-Expose-Headers: X-Api-Version, X-Request-Id, X-Response-Time
+  Content-MD5: 1m25BcR0gftdFm5ZtjK1tg==
+  X-Request-Id: ed1356c7-9e35-4bdd-ad4c-eb1c65c706b7
+  X-Response-Time: 5
+  Via: 1.1 127.0.0.1
+  Via: 1.1 informatics.mayo.edu
+
+  </pre>
+  <p>Return:</p>
+  <pre>
+    <code>
+    {
+      "resourceURI":"http://id.nlm.nih.gov/cui/C1140092",
+      "resourceName":"AIR93",
+      "resourceType":"CODE_SYSTEM_VERSION",
+      "versionOf":"AIR",
+      "identifiers":[
+        "1993",
+        "AIR93"
+      ]
+    }
+    </code>
+  </pre>
 </body>
 </html>
