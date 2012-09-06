@@ -210,8 +210,9 @@ send_static = (file, type) ->
     )
 
 start_server = () ->
+  server.get('/', send_static('../index.html', 'text/html') )
   server.get('/admin/versions', send_static('../version_admin.html', 'text/html') )
-  server.get('/admin', send_static('../id_admin.html', 'text/html') )
+  server.get('/admin/ids', send_static('../id_admin.html', 'text/html') )
   server.get('/style.css', send_static('../style.css', 'text/css') )
   server.get('/id/:type', get_by_id )
   server.get('/id/:type/:identifier', get_by_identifier )
