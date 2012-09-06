@@ -106,7 +106,7 @@ get_by_id = (req, res, next) ->
   persistence.get_by_id(type,id, 
     (result) -> 
       if(result)
-        res.header('Location', "/id/#{result.ResourceType}/#{result.ResourceName}");
+        res.header('Location', "../id/#{result.ResourceType}/#{result.ResourceName}");
         res.send(302)
       else
         send_error(404, "Resource Not Found", res)
@@ -142,7 +142,7 @@ get_by_version_id = (req, res, next) ->
             resourceName : result.VersionName
           res.send(return_type)
         else
-          res.header('Location', "/version/CODE_SYSTEM_VERSION/#{result.VersionName}");
+          res.header('Location', "../../../version/CODE_SYSTEM_VERSION/#{result.VersionName}");
           res.send(302)
       else
         send_error(404, "Resource Not Found", res)

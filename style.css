@@ -95,4 +95,41 @@
 			.button:hover{ 
 				  background-color: #777; 
 			}
+
+			pre.terminal {
+    background-clip: padding-box;
+    background-color: #444444;
+    background-image: none;
+    border: 2px solid #DEDEDE;
+    border-radius: 3px 3px 3px 3px;
+    color: #FFFFFF;
+    filter: none;
+    padding: 10px;
+    position: relative;
+    text-shadow: none;
+}
+pre.terminal em {
+    color: #F9FE64;
+}
+
+pre {
+    background-clip: padding-box;
+    background-color: #FAFAFB;
+    border: 1px solid #CACACA;
+    border-radius: 3px 3px 3px 3px;
+    color: #393939;
+    font: 12px Monaco,"Courier New","DejaVu Sans Mono","Bitstream Vera Sans Mono",monospace;
+    margin: 0;
+    overflow: auto;
+    padding: 10px;
+}
+
+body {
+	width: 920px;
+	padding: 25px;
+}
+
+p {
+    margin: 1em 0;
+}
 		
