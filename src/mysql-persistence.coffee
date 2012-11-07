@@ -35,6 +35,13 @@ _save_ids = (client,json,callback) ->
       trans.rollback()
       client.end()
 
+  if(json.oldResourceName)
+    trans.query("""
+      DELETE FROM 
+        urimap
+      WHERE resourcetype = ? AND resourcename = ?
+      """, [json.resourceType, json.oldResourceName],error)
+
   trans.query("""
     DELETE FROM 
       urimap
