@@ -123,7 +123,7 @@ get_by_id = (req, res, next) ->
   persistence.get_by_id(type,id, 
     (result) -> 
       if(result)
-        callbackString = if _is_jsonp(req) then "?callback=" + req.query.callback
+        callbackString = if _is_jsonp(req) then "?callback=" + req.query.callback else ""
         res.header('Location', "../id/#{result.ResourceType}/#{result.ResourceName}" + callbackString);
         res.send(302)
       else
@@ -154,28 +154,9 @@ get_by_version_id = (req, res, next) ->
   persistence.get_by_version_id(type,identifier,version_id,
     (result) -> 
       if(result)
-        if(result.VersionName == result.VersionId)
-          return_type =
-            resourceURI : result.VersionURI
-            resourceName : result.VersionName
-          res.send(return_type)
-        else
-          res.header('Location', "../../../version/CODE_SYSTEM_VERSION/#{result.VersionName}");
+          callbackString = if _is_jsonp(req) then "?callback=" + req.query.callback else ""
+          res.header('Location', "../../../version/CODE_SYSTEM_VERSION/#{result.VersionName}" + callbackString);
           res.send(302)
-      else
-        send_error(404, "Resource Not Found", res)
-  )
-
-get_by_version_identifier = (req, res, next) ->
-  type = req.params.type
-  identifier = req.params.identifier
-  persistence.get_by_version_identifier(type,identifier
-    (result) -> 
-      if(result)
-          return_type =
-            resourceURI : result.VersionURI
-            resourceName : result.VersionName
-          res.send(return_type)
       else
         send_error(404, "Resource Not Found", res)
   )

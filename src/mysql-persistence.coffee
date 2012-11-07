@@ -293,7 +293,7 @@ get_all_version_ids = (type,identifier,callback) ->
     FROM 
       urimap um 
       
-    INNER JOIN
+    LEFT JOIN
       versionmap vm
     ON
     (

@@ -29,15 +29,7 @@
         }
 
         $(document).ready(function() {
-/*
-            $('#resourceName').bind('input', function() {
 
-                if(oldResourceName != null){
-                    alert($(this).val())
-                    oldResourceName = $(this).val();
-                }
-            } );
-*/
             $('#btnAdd').click(function() {
                 addIdentifier();
 
@@ -57,37 +49,41 @@
                 $.ajax({
                     type: "GET",
                     url: serviceUrl + "/id/" + $('#resourceTypeLoad').val() + "?id=" + $('#identifierLoad').val(),
-                    dataType: 'json',
-                    contentType: "application/jsonp",
+                    dataType: 'jsonp',
+                    contentType: "application/json",
                     error: function(XMLHttpRequest, textStatus, errorThrown){
                         if( XMLHttpRequest.status == '404'){
                             alert("No URI Map with identifier " + $('#identifierLoad').val() + " was found.");
                         }
                     },
                     success: function(data) {
-                        $.ajax({
-                            type: "GET",
-                            url: serviceUrl + "/ids/" + data.resourceType + "/" + data.resourceName,
-                            dataType: 'json',
-                            contentType: "application/jsonp",
-                            success: function(data) {
-                                oldResourceName = data.resourceName;
-
-                                $('#resourceType').val(data.resourceType);
-                                $('#resourceName').val(data.resourceName);
-                                $('#resourceUri').val(data.resourceURI);
-                                $('#baseEntityUri').val(data.baseEntityURI);
-
-                                $('#identifiers').empty();
-                                for(i in data.identifiers){
-                                    addIdentifier(data.identifiers[i])
-                                }
-                            }
-                        });
+                        setIds(data)
                     }
                 });
                 return false;
             });
+
+            function setIds(data) {
+                $.ajax({
+                    type: "GET",
+                    url: serviceUrl + "/ids/" + data.resourceType + "/" + data.resourceName,
+                    dataType: 'jsonp',
+                    contentType: "application/json",
+                    success: function(data) {
+                        oldResourceName = data.resourceName;
+
+                        $('#resourceType').val(data.resourceType);
+                        $('#resourceName').val(data.resourceName);
+                        $('#resourceUri').val(data.resourceURI);
+                        $('#baseEntityUri').val(data.baseEntityURI);
+
+                        $('#identifiers').empty();
+                        for(i in data.identifiers){
+                            addIdentifier(data.identifiers[i])
+                        }
+                    }
+                });
+            }
 
             $('#btnSave').click(function() {
                 var json = {

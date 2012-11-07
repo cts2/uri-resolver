@@ -48,35 +48,39 @@
                     type: "GET",
                     url: serviceUrl + "/version/" + $('#resourceTypeLoad').val() + "/" + 
                         $('#identifierLoad').val() + "/" + $('#versionIdentifierLoad').val(),
-                    dataType: 'json',
-                    contentType: "application/jsonp",
+                    dataType: 'jsonp',
+                    contentType: "application/json",
                     error: function(XMLHttpRequest, textStatus, errorThrown){
                         if( XMLHttpRequest.status == '404'){
                             alert("No URI Map with identifier " + $('#versionIdentifierLoad').val() + " was found.");
                         }
                     },
                     success: function(data) {
-                        $.ajax({
-                            type: "GET",
-                            url: serviceUrl + "/versions/" + data.resourceType + "/" + data.resourceName,
-                            dataType: 'json',
-                            contentType: "application/jsonp",
-                            success: function(data) {
-                                $('#resourceType').val(data.resourceType);
-                                $('#resourceName').val(data.resourceName);
-                                $('#resourceUri').val(data.resourceURI);
-                                $('#versionOf').val(data.versionOf);
-
-                                $('#identifiers').empty();
-                                for(i in data.identifiers){
-                                    addIdentifier(data.identifiers[i])
-                                }
-                            }
-                        });
+                        setIds(data);
                     }
                 });
                 return false;
             });
+
+            function setIds(data) {
+                $.ajax({
+                    type: "GET",
+                    url: serviceUrl + "/versions/" + data.resourceType + "/" + data.resourceName,
+                    dataType: 'jsonp',
+                    contentType: "application/json",
+                    success: function(data) {
+                        $('#resourceType').val(data.resourceType);
+                        $('#resourceName').val(data.resourceName);
+                        $('#resourceUri').val(data.resourceURI);
+                        $('#versionOf').val(data.versionOf);
+
+                        $('#identifiers').empty();
+                        for(i in data.identifiers){
+                            addIdentifier(data.identifiers[i])
+                        }
+                    }
+                });
+            }
 
             $('#btnSave').click(function() {
                 var json = {
@@ -141,9 +145,8 @@
     <br/>
     <label>Resource Type: </label>
                     <select name="resourceType" id="resourceType" >
-                      <option value="CODE_SYSTEM">CODE_SYSTEM</option>
                       <option value="CODE_SYSTEM_VERSION">CODE_SYSTEM_VERSION</option>
-                      <option value="VALUE_SET">VALUE_SET</option>
+                      <option value="MAP_VERSION">MAP_VERSION</option>
                     </select>
     <br/>
     <label>Version Of: </label><input type="text" name="versionOf" id="versionOf" />
