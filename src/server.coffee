@@ -7,12 +7,29 @@ server = restify.createServer({
   formatters : {
     'text/html': (req, res, body) -> return body
     'text/css': (req, res, body) -> return body
+    'application/javascript': (req, res, body) ->
+      if body instanceof Error
+        return body.stack
+
+      if Buffer.isBuffer body
+        return body.toString 'base64'
+
+      if (callback = req.query.callback || req.query.jsonp)?
+        return "#{callback}(" + (JSON.stringify body) + ");"
+
+      else
+        return (JSON.stringify body)
   }
 })
 
 server.use(restify.queryParser())
 server.use(restify.bodyParser({ mapParams: false }))
 server.use(restify.authorizationParser())
+
+server.use (req, res, next) ->
+  if _is_jsonp(req)
+    res.contentType = 'application/javascript' #force jsonp when it is requested
+  next()
 
 #TODO: not sure how queries will work
 query_urimaps = (req, res, next) ->
@@ -106,7 +123,8 @@ get_by_id = (req, res, next) ->
   persistence.get_by_id(type,id, 
     (result) -> 
       if(result)
-        res.header('Location', "../id/#{result.ResourceType}/#{result.ResourceName}");
+        callbackString = if _is_jsonp(req) then "?callback=" + req.query.callback
+        res.header('Location', "../id/#{result.ResourceType}/#{result.ResourceName}" + callbackString);
         res.send(302)
       else
         send_error(404, "Resource Not Found", res)
@@ -174,7 +192,7 @@ get_all_ids = (req, res, next) ->
           resourceType : result[0].ResourceType
           resourceName : result[0].ResourceName
           resourceURI : result[0].ResourceURI
-          identifiers : (row.Identifier for row in result)
+          identifiers : _build_id_array(result)
 
         if resource_type is "CODE_SYSTEM" then return_type.baseEntityURI = result[0].BaseEntityURI
 
@@ -182,6 +200,17 @@ get_all_ids = (req, res, next) ->
       else
         send_error(404, "Resource Not Found", res)
   )
+
+_is_jsonp = (req) ->
+  req.query.callback? || req.query.jsonp?
+
+_build_id_array = (result) ->
+  result_array = []
+  for row in result
+    if(row.Identifier)
+      result_array.push row.Identifier
+
+  result_array
 
 send_error = (code, message, res) ->
   res.send(code, {'error_message' : message})

@@ -124,7 +124,14 @@ get_by_identifier = (type,identifier,callback) ->
 get_by_id = (type,id,callback) ->
   database.querySingle(
     """
-    SELECT * FROM urimap um
+    SELECT 
+      um.resourcetype ResourceType,
+      um.resourcename ResourceName,
+      um.resourceuri ResourceURI,
+      um.baseentityuri BaseEntityURI,
+      im.identifier
+
+    FROM urimap um
 
     LEFT JOIN identifiermap im ON 
       (
@@ -163,12 +170,16 @@ query_urimaps = (q,callback) ->
   database.query(
     """
     SELECT 
-      *
-    
+      um.resourcetype ResourceType,
+      um.resourcename ResourceName,
+      um.resourceuri ResourceURI,
+      um.baseentityuri BaseEntityURI,
+      im.identifier
+
     FROM 
       identifiermap im
 
-    INNER JOIN 
+    LEFT JOIN 
       urimap um 
     ON 
       (
@@ -200,13 +211,18 @@ get_all_ids = (type,identifier,callback) ->
   database.query(
     """
     SELECT 
-      *
+      um.resourcetype ResourceType,
+      um.resourcename ResourceName,
+      um.resourceuri ResourceURI,
+      um.baseentityuri BaseEntityURI,
+      im.identifier Identifier
     
     FROM 
-      identifiermap im
-
-    INNER JOIN 
       urimap um 
+
+    LEFT JOIN 
+      identifiermap im
+      
     ON 
       (
         im.resourcetype = um.resourcetype
@@ -215,9 +231,9 @@ get_all_ids = (type,identifier,callback) ->
       )
    
     WHERE 
-      im.resourcetype = ?
+      um.resourcetype = ?
       AND
-      im.resourcename = ?
+      um.resourcename = ?
     """, [type, identifier],
     (err, result) ->
       callback(result)
